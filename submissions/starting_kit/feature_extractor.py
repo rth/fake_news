@@ -3,6 +3,7 @@
 import numpy as np
 import string, unicodedata
 
+import pandas as pd
 from nltk.corpus import stopwords
 from nltk import word_tokenize
 from nltk.stem import SnowballStemmer
@@ -43,6 +44,14 @@ def strip_accents_unicode(s):
     s = s.decode("utf-8")
     return str(s)
 
+
+def _clean_statement_nan(statement):
+    statement = statement.copy()
+    mask = pd.isnull(statement)
+    statement[mask] = ''
+    return statement
+
+
 class FeatureExtractor(TfidfVectorizer):
     """Convert a collection of raw documents to a matrix of TF-IDF features.
 
@@ -74,28 +83,30 @@ class FeatureExtractor(TfidfVectorizer):
         -------
         self
         """
-        self._feat = np.array([' '.join(clean_str(text.strip_accents_unicode(dd))) 
-                    for dd in X_df.statement])
+        #self._feat = np.array([' '.join(clean_str(text.strip_accents_unicode(dd)))
+        #            for dd in X_df.statement])
+        self._feat = True
+        statement = _clean_statement_nan(X_df.statement)
 
-        
-        super(FeatureExtractor, self).fit(self._feat)
+        super(FeatureExtractor, self).fit(statement)
 
         return self
         
     def fit_transform(self, X_df, y=None):
         
         self.fit(X_df)
+        statement = _clean_statement_nan(X_df.statement)
 
-        return self.transform(self.X_df)
+        return self.transform(statement)
         
     def transform(self, X_df):
         
-        X = np.array([' '.join(clean_str(text.strip_accents_unicode(dd))) 
-                    for dd in X_df.statement])
+        #X = np.array([' '.join(clean_str(text.strip_accents_unicode(dd))) 
+        #            for dd in X_df.statement])
 
         check_is_fitted(self, '_feat', 'The tfidf vector is not fitted')
+        statement = _clean_statement_nan(X_df.statement)
 
-        X = super(FeatureExtractor, self).transform(X)
-                
+        X = super(FeatureExtractor, self).transform(statement)
+
         return X
-

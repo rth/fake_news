@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import pandas as pd
 import rampwf as rw
 from sklearn.model_selection import StratifiedShuffleSplit
@@ -37,6 +38,10 @@ def _read_data(path, f_name):
 
     y_array = data['label'].values
     X_df = data.drop([_target_column_name] + _ignore_column_names, axis=1)
+
+    if pd.isnull(y_array).any():
+        raise ValueError('Failed to read {}, nan detected in y_array'
+                         .format(f_name))
 
     return X_df, y_array
 
